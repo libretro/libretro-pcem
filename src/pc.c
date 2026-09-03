@@ -259,7 +259,7 @@ void initpc(int argc, char *argv[])
         fdi_init();
         img_init();
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__LIBRETRO__)
 	vlan_reset();	//NETWORK
 	network_card_init(network_card_current);
 #endif
@@ -371,7 +371,7 @@ void resetpchard()
         video_init();
         speaker_init();        
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__LIBRETRO__)
 	vlan_reset();	//NETWORK
 	network_card_init(network_card_current);
 #endif
