@@ -43,3 +43,37 @@ jobs:
         run: make -C src -f Makefile.libretro -j$(nproc)
       - name: Check
         run: file src/pcem_libretro.so
+
+  linux-i686:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib g++-multilib
+      - name: Build
+        env:
+          ARCH: x86
+          CFLAGS: -m32
+          CXXFLAGS: -m32
+          LDFLAGS: -m32
+        run: make -C src -f Makefile.libretro -j$(nproc)
+      - name: Check
+        run: file src/pcem_libretro.so
+
+  windows-i686:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y mingw-w64 gcc-mingw-w64-i686-posix g++-mingw-w64-i686-posix
+      - name: Build
+        env:
+          platform: win
+          ARCH: x86
+          CC: i686-w64-mingw32-gcc-posix
+          CXX: i686-w64-mingw32-g++-posix
+          AR: i686-w64-mingw32-ar
+        run: make -C src -f Makefile.libretro -j$(nproc)
+      - name: Check
+        run: file src/pcem_libretro.dll

@@ -35,8 +35,15 @@ ifeq ($(firstword $(filter x86_64,$(UNAME))),x86_64)
 	WITH_DYNAREC=x86_64
 else ifeq ($(firstword $(filter amd64,$(UNAME))),amd64)
 	WITH_DYNAREC=x86_64
-else ifeq ($(firstword $(filter amd64,$(UNAME))),x86)
+else ifneq (,$(filter i386 i486 i586 i686 x86,$(UNAME)))
 	WITH_DYNAREC=x86
+endif
+
+# A cross build has to say so itself: $(UNAME) describes the host.
+ifeq ($(ARCH),x86)
+	WITH_DYNAREC=x86
+else ifeq ($(ARCH),x86_64)
+	WITH_DYNAREC=x86_64
 endif
 
 ifeq ($(platform), unix)
