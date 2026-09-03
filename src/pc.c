@@ -594,7 +594,7 @@ void loadconfig(char *fn)
         SSI2001 = config_get_int(NULL, "ssi2001", 0);
         voodoo_enabled = config_get_int(NULL, "voodoo", 0);
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__LIBRETRO__)
 	//network
 	ethif = config_get_int(NULL, "netinterface", 1);
         if (ethif >= inum)
@@ -693,7 +693,7 @@ void saveconfig()
         config_set_int(NULL, "voodoo", voodoo_enabled);
 
 	config_set_int(NULL, "netinterface", ethif);
-#ifdef WIN32
+#if defined(WIN32) && !defined(__LIBRETRO__)
 	config_set_int(NULL, "netcard", network_card_current);
 #endif
 
