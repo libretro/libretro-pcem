@@ -1,0 +1,45 @@
+# Fork-only preflight: this core has never had CI, so this is how we find
+# out what still builds.
+name: preflight
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - preflight-**
+
+jobs:
+  linux-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y build-essential
+      - name: Build
+        run: make -C src -f Makefile.libretro -j$(nproc)
+      - name: Check
+        run: file src/pcem_libretro.so
+
+  windows-x64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y mingw-w64 gcc-mingw-w64-x86-64-posix g++-mingw-w64-x86-64-posix
+      - name: Build
+        env:
+          platform: win
+          CC: x86_64-w64-mingw32-gcc-posix
+          CXX: x86_64-w64-mingw32-g++-posix
+          AR: x86_64-w64-mingw32-ar
+        run: make -C src -f Makefile.libretro -j$(nproc)
+      - name: Check
+        run: file src/pcem_libretro.dll
+
+  linux-aarch64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y build-essential
+      - name: Build
+        run: make -C src -f Makefile.libretro -j$(nproc)
+      - name: Check
+        run: file src/pcem_libretro.so
