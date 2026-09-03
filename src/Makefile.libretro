@@ -171,6 +171,10 @@ endif
 # PCem is C89 throughout: it calls functions before they are declared, and
 # mixes int and pointer freely. gcc 14 turned all of that from a warning
 # into an error, which stops the build in the first handful of files.
+# The machine state lives in tentative definitions in the headers, which
+# every translation unit then owns a copy of; gcc 10 stopped merging
+# those by default.
+COMMONFLAGS += -fcommon
 COMMONFLAGS += -Wno-error=implicit-function-declaration
 COMMONFLAGS += -Wno-error=implicit-int
 COMMONFLAGS += -Wno-error=int-conversion
