@@ -1,5 +1,6 @@
 #include <sys/time.h>
 #include <time.h>
+#include <string.h>
 #include "ibm.h"
 #include "nvr.h"
 
@@ -13,7 +14,18 @@ void time_get(char *nvrram)
         memcpy(baknvr,nvrram,10);
 
 	cur_time = time(NULL);
+#ifdef _WIN32
+	{
+		/* mingw has no localtime_r to link against */
+		struct tm *tmp = localtime(&cur_time);
+		if (tmp)
+			cur_time_tm = *tmp;
+		else
+			memset(&cur_time_tm, 0, sizeof(cur_time_tm));
+	}
+#else
 	localtime_r(&cur_time, &cur_time_tm);
+#endif
 
         d = cur_time_tm.tm_sec % 10;
         c = cur_time_tm.tm_sec / 10;

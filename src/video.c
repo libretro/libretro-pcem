@@ -434,7 +434,7 @@ void closevideo()
         destroy_bitmap(buffer32);
 }
 
-#ifdef __unix
+#if defined(__unix) || defined(__LIBRETRO__)
 void d3d_fs_take_screenshot(char *fn)
 {
 }

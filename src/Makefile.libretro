@@ -35,8 +35,15 @@ ifeq ($(firstword $(filter x86_64,$(UNAME))),x86_64)
 	WITH_DYNAREC=x86_64
 else ifeq ($(firstword $(filter amd64,$(UNAME))),amd64)
 	WITH_DYNAREC=x86_64
-else ifeq ($(firstword $(filter amd64,$(UNAME))),x86)
+else ifneq (,$(filter i386 i486 i586 i686 x86,$(UNAME)))
 	WITH_DYNAREC=x86
+endif
+
+# A cross build has to say so itself: $(UNAME) describes the host.
+ifeq ($(ARCH),x86)
+	WITH_DYNAREC=x86
+else ifeq ($(ARCH),x86_64)
+	WITH_DYNAREC=x86_64
 endif
 
 ifeq ($(platform), unix)
@@ -167,6 +174,25 @@ COMMONFLAGS += -O0 -g
 else
 COMMONFLAGS += -O2 -g -DGIT_VERSION=\"$(GIT_VERSION)\" 
 endif
+
+# PCem is C89 throughout: it calls functions before they are declared, and
+# mixes int and pointer freely. gcc 14 turned all of that from a warning
+# into an error, which stops the build in the first handful of files.
+# The machine state lives in tentative definitions in the headers, which
+# every translation unit then owns a copy of; gcc 10 stopped merging
+# those by default.
+COMMONFLAGS += -fcommon
+
+# The Voodoo code is written against SSE2 intrinsics, which a 32-bit x86
+# compiler does not enable by default. PCem needs a Pentium 4 era host
+# anyway, so ask for them.
+ifeq ($(WITH_DYNAREC),x86)
+	COMMONFLAGS += -msse2 -mfpmath=sse
+endif
+COMMONFLAGS += -Wno-error=implicit-function-declaration
+COMMONFLAGS += -Wno-error=implicit-int
+COMMONFLAGS += -Wno-error=int-conversion
+COMMONFLAGS += -Wno-error=incompatible-pointer-types
 
 CORE_DIR    := .
 INCFLAGS    :=
