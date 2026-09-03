@@ -29,7 +29,6 @@ SOURCES_C := $(CORE_DIR)/libretro.c \
 				 $(CORE_DIR)/acerm3a.c \
 				 $(CORE_DIR)/ali1429.c \
 				 $(CORE_DIR)/amstrad.c \
-				 $(CORE_DIR)/cdrom-ioctl-linux.c \
 				 $(CORE_DIR)/cdrom-iso.c \
 				 $(CORE_DIR)/cdrom-null.c \
 			    $(CORE_DIR)/codegen.c \
@@ -166,6 +165,14 @@ SOURCES_C := $(CORE_DIR)/libretro.c \
 
 SOURCES_C += $(CORE_DIR)/thread-pthread.c
 
+
+# The host CD-ROM backend is per-OS: the Win32 one drives IOCTL through
+# windows.h, the other one includes linux/cdrom.h.
+ifneq (,$(findstring win,$(platform)))
+	SOURCES_C += $(CORE_DIR)/cdrom-ioctl.c
+else
+	SOURCES_C += $(CORE_DIR)/cdrom-ioctl-linux.c
+endif
 
 ifeq ($(WITH_DYNAREC), arm)
 	#COMMONFLAGS += -DC_DYNREC -DC_TARGETCPU="ARMV7LE"
