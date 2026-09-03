@@ -182,6 +182,13 @@ endif
 # every translation unit then owns a copy of; gcc 10 stopped merging
 # those by default.
 COMMONFLAGS += -fcommon
+
+# The Voodoo code is written against SSE2 intrinsics, which a 32-bit x86
+# compiler does not enable by default. PCem needs a Pentium 4 era host
+# anyway, so ask for them.
+ifeq ($(WITH_DYNAREC),x86)
+	COMMONFLAGS += -msse2 -mfpmath=sse
+endif
 COMMONFLAGS += -Wno-error=implicit-function-declaration
 COMMONFLAGS += -Wno-error=implicit-int
 COMMONFLAGS += -Wno-error=int-conversion
