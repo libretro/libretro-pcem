@@ -376,7 +376,7 @@ void resetpchard()
 	network_card_init(network_card_current);
 #endif
 
-        sound_card_init(sound_card_current);
+        sound_card_init();
         if (GUS)
                 device_add(&gus_device);
         if (GAMEBLASTER)
