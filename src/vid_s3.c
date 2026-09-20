@@ -95,7 +95,7 @@ typedef struct s3_t
         } accel;
 } s3_t;
 
-void s3_updatemapping();
+void s3_updatemapping(s3_t *s3);
 
 void s3_accel_write(uint32_t addr, uint8_t val, void *p);
 void s3_accel_write_w(uint32_t addr, uint16_t val, void *p);
