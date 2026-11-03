@@ -519,9 +519,39 @@ void retro_set_video_refresh(retro_video_refresh_t cb)
    video_cb = cb;
 }
 
+static void check_variables(bool first_time_startup);
+
+/* Reset (Restart Content) builds the machine again from the options, as
+ * standalone PCem does when its settings change: the "(restart)" options -
+ * model, cards, CPU core - are read only at load otherwise */
 void retro_reset(void)
 {
+   check_variables(true);
+   romset = models[model].id;
+   /* a CPU the new model does not have: its first one */
+   if (cpu_manufacturer >= 4 || !models[model].cpu[cpu_manufacturer].cpus)
+      cpu_manufacturer = 0;
+   {
+      int n = 0;
+      while (models[model].cpu[cpu_manufacturer].cpus[n].cpu_type != -1)
+         n++;
+      if (cpu >= n)
+         cpu = 0;
+   }
+   /* memory within what the model takes (an XT: at most 640 KB) */
+   {
+      int min = models[model].is_at ? models[model].min_ram * 1024 : models[model].min_ram;
+      int max = models[model].is_at ? models[model].max_ram * 1024 : models[model].max_ram;
+      if (mem_size < min)
+         mem_size = min;
+      if (mem_size > max)
+         mem_size = max;
+   }
+   mem_resize();
+   loadbios();
    resetpchard();
+   cpu_set();
+   speedchanged();
 }
 
 static void check_variables(bool first_time_startup)
@@ -541,6 +571,9 @@ static void check_variables(bool first_time_startup)
       }
       else
          cpu_use_dynarec = 0;
+#ifdef PCEM_NO_DYNAREC
+      cpu_use_dynarec = 0;   /* no recompiler for this host */
+#endif
 
       var.key = "pcem_video_timing_speed";
 
@@ -1057,6 +1090,7 @@ bool retro_load_game(const struct retro_game_info *info)
 void retro_unload_game(void)
 {
    closepc();
+   sound_close();
 
    midi_close();
 }

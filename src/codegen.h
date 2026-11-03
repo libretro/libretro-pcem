@@ -5,7 +5,12 @@
 #elif defined i386 || defined __i386 || defined __i386__ || defined _X86_ || defined WIN32 || defined _WIN32 || defined _WIN32
 #include "codegen_x86.h"
 #else
-#error Dynamic recompiler not implemented on your platform
+/* No recompiler for this host (ARM64 and others): the interpreter runs
+ * everything, codegen_null.c stands in for the recompiler's entry points */
+#ifndef PCEM_NO_DYNAREC
+#define PCEM_NO_DYNAREC
+#endif
+#include "codegen_null.h"
 #endif
 
 /*Handling self-modifying code (of which there is a lot on x86) :

@@ -92,6 +92,7 @@ int soundon = 1;
 static int16_t cd_buffer[CD_BUFLEN * 2];
 static thread_t *sound_cd_thread_h;
 static event_t *sound_cd_event;
+static volatile int sound_cd_stop;
 static unsigned int cd_vol_l, cd_vol_r;
 
 void sound_set_cd_volume(unsigned int vol_l, unsigned int vol_r)
@@ -109,6 +110,8 @@ static void sound_cd_thread(void *param)
                 int c;
                 
                 thread_wait_event(sound_cd_event, -1);
+                if (sound_cd_stop)
+                        break;
                 ioctl_audio_callback(cd_buffer, CD_BUFLEN*2);
                 if (soundon)
                 {
@@ -238,8 +241,21 @@ void sound_init()
 
         outbuffer = malloc(SOUNDBUFLEN * 2 * sizeof(int16_t));
         
+        sound_cd_stop = 0;
         sound_cd_event = thread_create_event();
         sound_cd_thread_h = thread_create(sound_cd_thread, NULL);
+}
+
+/* The CD audio thread stopped and joined: a libretro core is unloaded after
+ * its content, and a thread still waiting in it then runs into unmapped code */
+void sound_close()
+{
+        if (!sound_cd_thread_h)
+                return;
+        sound_cd_stop = 1;
+        thread_set_event(sound_cd_event);
+        thread_kill(sound_cd_thread_h);
+        sound_cd_thread_h = NULL;
 }
 
 void sound_add_handler(void (*get_buffer)(int16_t *buffer, int len, void *p), void *p)

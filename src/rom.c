@@ -1,15 +1,59 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "ibm.h"
 #include "mem.h"
 #include "rom.h"
 
-FILE *romfopen(char *fn, char *mode)
+#if !defined(_WIN32)
+#include <dirent.h>
+#include <strings.h>
+
+/* The ROM sets are made on Windows: the code asks for "ami486.BIN" where the
+ * file is ami486.bin. Each part of the path after pcempath is matched without
+ * regard to case when the exact name is not there. */
+static void rom_path(char *s, const char *fn)
 {
-        char s[512];
+        char rest[512], *part, *save;
+
+        strcpy(s, pcempath);
+        put_backslash(s);
+        strcpy(rest, fn);
+        for (part = strtok_r(rest, "/", &save); part; part = strtok_r(NULL, "/", &save))
+        {
+                size_t len = strlen(s);
+                DIR *d = opendir(s);
+                const char *name = part;
+                struct dirent *e;
+
+                while (d && (e = readdir(d)))
+                {
+                        if (!strcmp(e->d_name, part))
+                        {
+                                name = part;
+                                break;
+                        }
+                        if (!strcasecmp(e->d_name, part))
+                                name = e->d_name;
+                }
+                snprintf(s + len, 512 - len, "%s%s", name, save && *save ? "/" : "");
+                if (d)
+                        closedir(d);
+        }
+}
+#else
+static void rom_path(char *s, const char *fn)
+{
         strcpy(s, pcempath);
         put_backslash(s);
         strcat(s, fn);
+}
+#endif
+
+FILE *romfopen(char *fn, char *mode)
+{
+        char s[512];
+        rom_path(s, fn);
         return fopen(s, mode);
 }
 
@@ -18,9 +62,7 @@ int rom_present(char *fn)
         FILE *f;
         char s[512];
         
-        strcpy(s, pcempath);
-        put_backslash(s);
-        strcat(s, fn);
+        rom_path(s, fn);
         f = fopen(s, "rb");
         if (f)
         {

@@ -589,10 +589,15 @@ void loadconfig(char *fn)
         else
                 config_load(fn);
         
+        /* The libretro core sets the machine, its cards and the CPU core from
+         * its options before this (check_variables): the configuration file
+         * must not put its own - or its defaults - back over them */
+#ifndef __LIBRETRO__
         GAMEBLASTER = config_get_int(NULL, "gameblaster", 0);
         GUS = config_get_int(NULL, "gus", 0);
         SSI2001 = config_get_int(NULL, "ssi2001", 0);
         voodoo_enabled = config_get_int(NULL, "voodoo", 0);
+#endif
 
 #if defined(WIN32) && !defined(__LIBRETRO__)
 	//network
@@ -602,19 +607,23 @@ void loadconfig(char *fn)
         network_card_current = config_get_int(NULL, "netcard", NE2000);
 #endif
 
+#ifndef __LIBRETRO__
         model = config_get_int(NULL, "model", 14);
 
         if (model >= model_count())
                 model = model_count() - 1;
 
         romset = model_getromset();
+#endif
         cpu_manufacturer = config_get_int(NULL, "cpu_manufacturer", 0);
         cpu = config_get_int(NULL, "cpu", 0);
+#ifndef __LIBRETRO__
         cpu_use_dynarec = config_get_int(NULL, "cpu_use_dynarec", 0);
         
         gfxcard = config_get_int(NULL, "gfxcard", 0);
         video_speed = config_get_int(NULL, "video_speed", 3);
         sound_card_current = config_get_int(NULL, "sndcard", SB2);
+#endif
 
         p = (char *)config_get_string(NULL, "disc_a", "");
         if (p) strcpy(discfns[0], p);
